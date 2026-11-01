@@ -119,9 +119,9 @@ void screen_message(App *a, const char *title, const char *text, int fg) {
     }
 }
 
-#define TEAM_NAME "Docker Duo"
+#define TEAM_NAME "Three Pointers"
 
-/* "━━  by Team Docker Duo  ━━" centred under the banner */
+/* "━━  by Team Three Pointers  ━━" centred under the banner */
 static void team_line(int y, int w) {
     const char *pre = "━━━  by Team ", *post = "  ━━━";
     int tw = utf8_width(pre) + utf8_width(TEAM_NAME) + utf8_width(post);

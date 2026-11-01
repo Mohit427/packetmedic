@@ -1,6 +1,6 @@
 # PacketMedic TUI (`pmtui`): architecture
 
-_Team Docker Duo_
+_Team Three Pointers_
 
 A native **C** terminal front-end for PacketMedic with an htop-style look. From one screen you can:
 

@@ -2,7 +2,7 @@
 
 **Finds the faults and attacks hidden in a packet capture, tells you which is which, and explains each one in plain language with the evidence packets.**
 
-> **Team Docker Duo** · Network track · 24h Cybersecurity Hackathon · IIITDM Kancheepuram
+> **Team Three Pointers** · Network track · 24h Cybersecurity Hackathon · IIITDM Kancheepuram
 > Demo video: _<add link here>_
 
 ---
