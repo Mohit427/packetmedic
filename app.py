@@ -58,9 +58,17 @@ with st.sidebar:
     st.title("🩺 PacketMedic")
     st.caption(f"v{__version__} · finds faults & attacks in packet captures and explains them. "
                "Runs 100% offline: your capture never leaves this machine.")
-    source = st.radio("Capture source", ["Bundled sample", "Upload my own"], index=0)
+    # A capture handed over by the pmtui terminal app. It is read from the process
+    # environment only (never from the URL), so web visitors can't choose server files.
+    cli_file = os.environ.get("PACKETMEDIC_FILE", "")
+    cli_ok = bool(cli_file) and Path(cli_file).is_file()
+    sources = (["From terminal (pmtui)"] if cli_ok else []) + ["Bundled sample", "Upload my own"]
+    source = st.radio("Capture source", sources, index=0)
     capture_path, display_name = None, None
-    if source == "Bundled sample":
+    if source == "From terminal (pmtui)":
+        capture_path, display_name = cli_file, Path(cli_file).name[:120]
+        st.caption(f"Opened from pmtui: {display_name}")
+    elif source == "Bundled sample":
         samples = sorted(p.name for p in SAMPLES.glob("*") if p.is_file())
         if not samples:
             st.warning("No samples found. Run `python samples/generate.py` first.")

@@ -8,3 +8,8 @@ evidence/
 report*.json
 .DS_Store
 Cybersecurity_Hackathon_v2.pdf
+reports/
+captures/
+cli_c/pmtui
+cli_c/pmtui.exe
+cli_c/build/

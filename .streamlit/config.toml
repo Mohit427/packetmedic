@@ -2,6 +2,7 @@
 maxUploadSize = 200
 enableXsrfProtection = true
 headless = true
+address = "127.0.0.1"   # local only: never expose captures to the LAN
 
 [browser]
 gatherUsageStats = false

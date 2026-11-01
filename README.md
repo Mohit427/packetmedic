@@ -60,6 +60,25 @@ python -m packetmedic analyze capture.pcap --anonymize --html shareable.html
 python -m packetmedic analyze capture.pcap --json -                  # JSON to stdout
 ```
 
+**Terminal dashboard: `pmtui` (native C, htop-style):**
+
+```bash
+cd cli_c
+mingw32-make        # Windows (MSYS2 / MinGW-w64 gcc)   ->  cli_c\pmtui.exe
+make                # Linux / macOS (gcc or clang)      ->  cli_c/pmtui
+cd ..
+cli_c/pmtui                                         # interactive menu
+cli_c/pmtui samples/pcaps/07_arp_spoofing.pcap     # straight to the dashboard
+```
+
+The main menu offers three options:
+1. **Bundled sample.** Browse all 15 scenarios with a description of each.
+2. **Your own file.** Type or paste a path; it is validated before analysis.
+3. **Live capture.** Records 10–120 s of this machine's traffic passively, after a consent screen, then diagnoses it. It uses `dumpcap` (Wireshark), `tcpdump`, or Windows' built-in `pktmon` (run the terminal **as Administrator** for pktmon).
+
+The dashboard shows health/verdict meters, protocol meters, a findings table with mini timelines, and a scrollable detail pane with reasoning, evidence frames and a Wireshark filter. It also shows a clickable link to the **HTML report**. **F3** launches the **Streamlit dashboard** for the same capture and shows its `http://localhost:…` link. Other keys: **F2** opens the HTML report, **F5** exports evidence pcaps.
+`pmtui` uses no third-party C libraries (own ANSI terminal layer, own JSON parser) and never invokes a shell. Design: [`docs/CLI_ARCHITECTURE.md`](docs/CLI_ARCHITECTURE.md).
+
 **Accuracy check and tests:**
 ```bash
 python eval.py      # precision / recall / verdict accuracy on the labeled samples
@@ -148,7 +167,7 @@ app.py (Streamlit) · eval.py · samples/generate.py · tests/
 | [Rich](https://github.com/Textualize/rich) 15 | MIT | Terminal output |
 | [pytest](https://pytest.org) 9 | MIT | Tests |
 
-No external APIs or AI services are used. All detection, correlation, verdict, explanation and pcap reading/writing logic is our own code. We do not wrap Wireshark or tshark.
+The C terminal app (`cli_c/`) uses only the C standard library and the OS APIs (Win32 / POSIX). No external APIs or AI services are used. All detection, correlation, verdict, explanation and pcap reading/writing logic is our own code. We do not wrap Wireshark or tshark.
 
 ## Responsible use
 
