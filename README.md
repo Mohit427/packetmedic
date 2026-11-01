@@ -1,9 +1,16 @@
 # 🩺 PacketMedic
 
+![PacketMedic's terminal app (pmtui) opening screen](docs/thumbnail.png)
+
 **Finds the faults and attacks hidden in a packet capture, tells you which is which, and explains each one in plain language with the evidence packets.**
 
 > **Team Three Pointers** · Network track · 24h Cybersecurity Hackathon · IIITDM Kancheepuram
-> Demo video: _<add link here>_
+
+| | |
+|---|---|
+| 🌐 **Deployment (website + web demo)** | **https://packetmedic.streamlit.app** |
+| 🎬 **Demo video** | **[Watch on Google Drive](https://drive.google.com/file/d/1IfI42yFX5HdvQ8wJs_JVz5ftPiASi8Hx/view?usp=sharing)** |
+| ⬇ **Windows app (no install)** | **[Latest release](https://github.com/Mohit427/packetmedic/releases/latest)** |
 
 > [!IMPORTANT]
 > **The product is the terminal app, `pmtui`.** It's a native C, htop-style dashboard that analyses sample captures, your own files, **and live traffic captured from your machine**, fully offline.
@@ -19,6 +26,15 @@
 | Works offline | ✅ | ❌ |
 | HTML report, JSON, evidence .pcap export | ✅ | ✅ |
 | Install | unzip and run (Windows) or build from source | none, open the link |
+
+## What's included
+
+- **`pmtui` terminal app:** native C, htop-style menu and dashboard, with bundled samples, your own captures, and live capture for a duration you choose (5–300 s).
+- **Windows release:** a 15 MB zip with `pmtui.exe` and the bundled engine, so no Python or setup is needed.
+- **Tested on a real Wi-Fi capture:** this found and fixed issues synthetic samples couldn't show: `pktmon` saving 802.11 frames labelled as Ethernet, packets recorded twice, TCP keep-alives counted as packet loss, and the wrong side guessed as the server when the handshake was missed.
+- **Harmless self-test:** [`tools/simulate_test_traffic.py`](tools/simulate_test_traffic.py) generates safe test patterns so you can check live capture on your own network.
+- **Website:** a landing page at [packetmedic.streamlit.app](https://packetmedic.streamlit.app), drawn from real engine output, with a bedside-monitor loop of real pmtui screens, download links, and the Windows warning explained.
+- **Web demo:** the same engine in a browser at [/demo](https://packetmedic.streamlit.app/demo), for demonstration only.
 
 ---
 
@@ -57,8 +73,19 @@ PacketMedic reads a `.pcap` / `.pcapng` file and produces a **diagnosis**, not a
 2. Right-click, **Extract All**, open the folder, and run **`pmtui.exe`** (in Windows Terminal for the best look).
 3. Press **1** for a sample, **2** for your own file, **3** for live capture. Live capture needs Terminal opened with **Run as administrator**.
 
-No Python or setup is needed: the analysis engine is bundled (frozen with PyInstaller), and the 15 sample captures are included. Windows SmartScreen may warn about an unsigned app; click **More info → Run anyway**.
+No Python or setup is needed: the analysis engine is bundled (frozen with PyInstaller), and the 15 sample captures are included. The zip's dashboard offers the HTML report (F2); the Streamlit dashboard (F3) needs the source install below.
 To rebuild the zip yourself: `pip install pyinstaller`, then `python tools/build_release.py` (needs MSYS2 gcc).
+
+#### If Windows warns you
+
+The app isn't code-signed, so Windows treats it as unknown:
+- **SmartScreen ("Windows protected your PC"):** expected. Click **More info → Run anyway**.
+- **Microsoft Defender:** bundled PyInstaller apps are sometimes flagged as a false positive. We haven't seen this happen with PacketMedic. If it does, first check the zip's checksum, then use **Windows Security → Virus & threat protection → Protection history → Actions → Allow on device**. Don't turn Defender off.
+
+Check the v1.0.0 zip in PowerShell with `Get-FileHash .\PacketMedic-1.0.0-win64.zip -Algorithm SHA256`. It must print:
+```
+326b09bdaeee4620dde5fe1361e39c91cb7be2cba3a93f2a1fece5726bcfb537
+```
 
 ### Option B: build from source (Windows, Linux, macOS)
 
@@ -87,6 +114,14 @@ The main menu offers three options:
 
 The dashboard shows health/verdict meters, protocol meters, a findings table with mini timelines, and a scrollable detail pane with reasoning, evidence frames and a Wireshark filter. It also shows a clickable link to the **HTML report**. **F3** launches the **Streamlit dashboard** for the same capture and shows its `http://localhost:…` link. Other keys: **F2** opens the HTML report, **F5** exports evidence pcaps.
 `pmtui` uses no third-party C libraries (own ANSI terminal layer, own JSON parser) and never invokes a shell. Design: [`docs/CLI_ARCHITECTURE.md`](docs/CLI_ARCHITECTURE.md).
+
+#### Test live capture on your own network
+
+**Only do this on a network you own, such as your home network.** Open an Administrator terminal, run pmtui, press **3**, choose 60 seconds and press **Y**. While it records, run this from a source checkout in a second terminal, using your own router's IP:
+```powershell
+.\.venv\Scripts\python.exe tools\simulate_test_traffic.py --scan 192.168.1.1
+```
+It sends DNS questions to a reserved address that never answers, looks up names that can't exist, and tries 30 TCP ports on that one private address. Expect two FAULT findings and one ATTACK finding, with your own PC shown as the scanner. Your normal traffic may add other real findings.
 
 ## 2. Engine command line (for scripting / automation)
 
@@ -164,7 +199,11 @@ packetmedic/
   explain/    templates.py
   output/     serialize.py · html_report.py · evidence.py · anonymize.py
   analyzer.py · cli.py · config.py (all limits & thresholds) · models.py
-app.py (Streamlit) · eval.py · samples/generate.py · tests/
+cli_c/src/    pmtui in C: tui.c · screens.c · engine.c · capture.c · proc.c · json.c · main.c
+app.py        Streamlit router · views/landing.py (/) · views/demo.py (/demo)
+landing/      landing page source (React) · web/landing.html (built page)
+tools/        build_release.py · landing_data.py · render_thumbnail.py · simulate_test_traffic.py
+eval.py · samples/generate.py · tests/
 ```
 
 ## Security of the tool itself
@@ -175,7 +214,8 @@ app.py (Streamlit) · eval.py · samples/generate.py · tests/
 - **Isolation:** each packet decode, each tracker update and each detector runs in its own error guard. A bad packet or a detector bug becomes a warning.
 - **Bounded memory:** every tracker table is an LRU-capped dict; a wall-clock limit applies too.
 - **Output escaping:** HTML report via Jinja2 autoescape plus a strict Content-Security-Policy; Rich markup escaped in the CLI; Markdown escaped in the dashboard. Sample 13 proves it.
-- **Privacy:** fully offline, no telemetry (`gatherUsageStats = false`), no LLM/API calls. Uploads go to a private temp file that is deleted when replaced. `--anonymize` consistently masks IPs/MACs in every report.
+- **Privacy:** pmtui and the engine run fully offline, with no telemetry (`gatherUsageStats = false`) and no LLM/API calls. On the hosted web demo, uploads are processed on the cloud server, and the page says so. Uploads go to a private temp file that is deleted when replaced. `--anonymize` consistently masks IPs/MACs in every report.
+- **C app safety:** processes start from argument lists with no shell, control characters are stripped before anything reaches the terminal, and live capture requires a consent screen and enforces 5–300 s and 400 MB limits.
 - **No secrets** anywhere in the repo, since nothing needs one.
 - **Fuzz-tested:** 35 fuzz cases (random frames, bit-flipped captures, corrupt pcapng) in `tests/test_safety.py`.
 
@@ -200,9 +240,10 @@ app.py (Streamlit) · eval.py · samples/generate.py · tests/
 | [Motion](https://motion.dev), [Lucide](https://lucide.dev) | MIT, ISC | Landing page animation and icons |
 | Big Shoulders Display, Atkinson Hyperlegible, JetBrains Mono, Permanent Marker (via Fontsource) | OFL / Apache-2.0 | Landing page typefaces |
 | [pytest](https://pytest.org) 9 | MIT | Tests |
+| [PyInstaller](https://pyinstaller.org) 6 | GPL-2.0 with bootloader exception | Bundling the engine for the Windows zip (build only) |
 
 The C terminal app (`cli_c/`) uses only the C standard library and the OS APIs (Win32 / POSIX). No external APIs or AI services are used. All detection, correlation, verdict, explanation and pcap reading/writing logic is our own code. We do not wrap Wireshark or tshark.
 
 ## Responsible use
 
-Analyse only captures from networks you own or are authorised to monitor. PacketMedic is a diagnostic tool and performs no active scanning or interception.
+Analyse only captures from networks you own or are authorised to monitor. PacketMedic is a diagnostic tool: analysis and live capture are passive and it performs no interception. The optional self-test script is the only part that sends test traffic, and it only scans a single private address you give it, on a device you own.
