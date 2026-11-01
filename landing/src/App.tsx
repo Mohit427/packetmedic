@@ -25,6 +25,28 @@ function demoHref(): string {
   }
 }
 
+/* Streamlit's embed sandbox forbids top-level navigation from inside the frame,
+   but the frame is same-origin: click a link created in the host page instead,
+   falling back to a new tab. */
+function openInHost(e: React.MouseEvent<HTMLAnchorElement>) {
+  const href = e.currentTarget.href;
+  for (const w of [window.top, window.parent]) {
+    try {
+      if (!w || w === window) continue;
+      const a = w.document.createElement('a');
+      a.href = href;
+      w.document.body.appendChild(a);
+      a.click();
+      a.remove();
+      e.preventDefault();
+      return;
+    } catch {
+      /* not reachable: try the next one */
+    }
+  }
+  if (window.top !== window) { e.preventDefault(); window.open(href, '_blank', 'noopener'); }
+}
+
 function go(id: string) {
   return (e: React.MouseEvent) => {
     e.preventDefault();
@@ -43,7 +65,7 @@ function Tabs({ dark = false }: { dark?: boolean }) {
         <Download size={22} strokeWidth={2.4} aria-hidden="true" /> Download for Windows
         <small>{R.size_mb} MB zip</small>
       </a>
-      <a className={`tab ${dark ? 'tab-ghost' : 'tab-secondary'}`} href={demo} target="_top">
+      <a className={`tab ${dark ? 'tab-ghost' : 'tab-secondary'}`} href={demo} target="_top" onClick={openInHost}>
         <MonitorPlay size={22} strokeWidth={2.2} aria-hidden="true" /> Open the web demo
       </a>
     </div>
