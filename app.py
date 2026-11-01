@@ -29,6 +29,10 @@ ICONS = {"ATTACK": "🚨", "SUSPICIOUS": "⚠️", "FAULT": "🔧"}
 
 st.set_page_config(page_title="PacketMedic", page_icon="🩺", layout="wide")
 
+# Running as the hosted public demo (Streamlit Community Cloud mounts apps under
+# /mount/src) or explicitly flagged? Then be honest that uploads reach a server.
+PUBLIC_DEMO = str(ROOT).startswith("/mount/src") or os.environ.get("PACKETMEDIC_PUBLIC_DEMO") == "1"
+
 _MD_SPECIAL = re.compile(r"([\\`*_{}\[\]()#+\-.!|<>~$:])")
 
 
@@ -56,8 +60,14 @@ def _cleanup_upload() -> None:
 
 with st.sidebar:
     st.title("🩺 PacketMedic")
-    st.caption(f"v{__version__} · finds faults & attacks in packet captures and explains them. "
-               "Runs 100% offline: your capture never leaves this machine.")
+    if PUBLIC_DEMO:
+        st.caption(f"v{__version__} · finds faults & attacks in packet captures and explains them.")
+        st.info("**Public demo.** Uploaded files are processed on this cloud server and deleted afterwards. "
+                "Use the bundled samples or non-sensitive captures. For private traffic, run PacketMedic "
+                "locally (fully offline): see the GitHub README.", icon="🌐")
+    else:
+        st.caption(f"v{__version__} · finds faults & attacks in packet captures and explains them. "
+                   "Runs 100% offline: your capture never leaves this machine.")
     # A capture handed over by the pmtui terminal app. It is read from the process
     # environment only (never from the URL), so web visitors can't choose server files.
     cli_file = os.environ.get("PACKETMEDIC_FILE", "")

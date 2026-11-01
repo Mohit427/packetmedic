@@ -52,7 +52,7 @@ pip install -r requirements.txt
 
 **Web dashboard** (recommended for the demo):
 ```bash
-streamlit run app.py
+streamlit run app.py --server.address 127.0.0.1   # local only
 ```
 Open the URL shown (http://localhost:8501), then pick a bundled sample or upload your own capture.
 

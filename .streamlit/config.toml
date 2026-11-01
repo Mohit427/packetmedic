@@ -2,7 +2,9 @@
 maxUploadSize = 200
 enableXsrfProtection = true
 headless = true
-address = "127.0.0.1"   # local only: never expose captures to the LAN
+# Note: the listen address is NOT pinned here, so the app can also run on
+# Streamlit Community Cloud. pmtui always starts it with --server.address 127.0.0.1,
+# and the README's local command does the same.
 
 [browser]
 gatherUsageStats = false
