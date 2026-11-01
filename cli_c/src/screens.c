@@ -12,6 +12,10 @@
 
 int g_snapshot_mode;   /* render one frame and return (pmtui --snapshot) */
 
+/* selection bar: bright white on blue (bold black renders as grey in many terminals) */
+#define SEL_FG C_BWHITE
+#define SEL_BG C_BLUE
+
 /* ================================================================== art */
 static const char *const BANNER_BIG[] = {
     "██████╗  █████╗  ██████╗██╗  ██╗███████╗████████╗███╗   ███╗███████╗██████╗ ██╗ ██████╗",
@@ -207,12 +211,12 @@ int screen_menu(App *a) {
         for (int i = 0; i < 3; i++) {
             int oy = y + i * 3;
             int on = i == sel;
-            int bg = on ? C_CYAN : C_DEF;
+            int bg = on ? SEL_BG : C_DEF;
             tui_fill(oy, 2, lw, C_DEF, bg, ' ');
             tui_fill(oy + 1, 2, lw, C_DEF, bg, ' ');
-            tui_textf(oy, 3, lw - 2, on ? C_BLACK : C_BYELLOW, bg, A_BOLD, " [%d]  %s %s", i + 1, on ? "▶" : " ",
+            tui_textf(oy, 3, lw - 2, on ? SEL_FG : C_BYELLOW, bg, A_BOLD, " [%d]  %s %s", i + 1, on ? "▶" : " ",
                       MENU_TITLES[i]);
-            tui_text(oy + 1, 12, lw - 11, on ? C_BLACK : C_GREY, bg, 0, MENU_DESC[i]);
+            tui_text(oy + 1, 12, lw - 11, on ? SEL_FG : C_GREY, bg, 0, MENU_DESC[i]);
         }
 
         /* right: system panel */
@@ -305,7 +309,7 @@ int screen_samples(App *a, char *out, size_t outlen) {
 
         int y = 2;
         tui_fill(y, 0, w, C_BLACK, C_GREEN, ' ');
-        tui_textf(y, 0, w, C_BLACK, C_GREEN, A_BOLD, "  %-3s %-38s %6s   %s", "#", "FILE", "SIZE", "EXPECTED RESULT");
+        tui_textf(y, 0, w, C_BLACK, C_GREEN, 0, "  %-3s %-38s %6s   %s", "#", "FILE", "SIZE", "EXPECTED RESULT");
         for (int i = 0; i < list_h; i++) {
             int idx = top + i;
             JVal *s = json_at(cat, (size_t)idx);
@@ -315,10 +319,10 @@ int screen_samples(App *a, char *out, size_t outlen) {
             path_join(path, sizeof path, a->eng.samples, file);
             human_size(file_size(path), sz, sizeof sz);
             int on = idx == sel, row = y + 1 + i;
-            int bg = on ? C_CYAN : C_DEF;
+            int bg = on ? SEL_BG : C_DEF;
             tui_fill(row, 0, w, C_DEF, bg, ' ');
-            tui_textf(row, 0, 52, on ? C_BLACK : C_DEF, bg, on ? A_BOLD : 0, "  %-3d %-38.38s %6s", idx + 1, file, sz);
-            tui_text(row, 53, w - 54, on ? C_BLACK : expected_color(exp), bg, A_BOLD, exp);
+            tui_textf(row, 0, 52, on ? SEL_FG : C_DEF, bg, on ? A_BOLD : 0, "  %-3d %-38.38s %6s", idx + 1, file, sz);
+            tui_text(row, 53, w - 54, on ? SEL_FG : expected_color(exp), bg, A_BOLD, exp);
         }
         /* detail panel */
         JVal *s = json_at(cat, (size_t)sel);
@@ -846,7 +850,7 @@ static int draw_dashboard(App *a, int present) {
     if (!g_full) {
         tui_fill(y, 0, w, C_BLACK, C_GREEN, ' ');
         int tlw = w >= 120 ? 30 : 18;
-        tui_textf(y, 0, w, C_BLACK, C_GREEN, A_BOLD, " %-7s %-10s %-6s %-6s %-*s %s", "ID", "VERDICT", "SEV", "CONF",
+        tui_textf(y, 0, w, C_BLACK, C_GREEN, 0, " %-7s %-10s %-6s %-6s %-*s %s", "ID", "VERDICT", "SEV", "CONF",
                   tlw, "TIMELINE", "FINDING");
         y++;
         list_h = n < 7 ? n : 7;
@@ -859,20 +863,20 @@ static int draw_dashboard(App *a, int present) {
             int idx = top + i;
             JVal *inc = json_at(incs, (size_t)idx);
             const char *verdict = json_gets(inc, "verdict", "");
-            int on = idx == g_sel, bg = on ? C_CYAN : C_DEF;
+            int on = idx == g_sel, bg = on ? SEL_BG : C_DEF;
             tui_fill(y, 0, w, C_DEF, bg, ' ');
-            tui_textf(y, 0, 9, on ? C_BLACK : C_BWHITE, bg, A_BOLD, " %-7s", json_gets(inc, "id", ""));
-            tui_textf(y, 9, 10, on ? C_BLACK : verdict_color(verdict), bg, A_BOLD, "%-10s", verdict);
-            tui_textf(y, 20, 14, on ? C_BLACK : C_DEF, bg, 0, "%-6s %-6s", json_gets(inc, "severity", ""),
+            tui_textf(y, 0, 9, on ? SEL_FG : C_BWHITE, bg, A_BOLD, " %-7s", json_gets(inc, "id", ""));
+            tui_textf(y, 9, 10, on ? SEL_FG : verdict_color(verdict), bg, A_BOLD, "%-10s", verdict);
+            tui_textf(y, 20, 14, on ? SEL_FG : C_DEF, bg, 0, "%-6s %-6s", json_gets(inc, "severity", ""),
                       json_gets(inc, "confidence", ""));
             double s0 = json_getn(inc, "start_offset_s", 0) / dur, s1 = json_getn(inc, "end_offset_s", 0) / dur;
             int b0 = (int)(s0 * tlw), b1 = (int)(s1 * tlw + 0.999);
             if (b1 <= b0) b1 = b0 + 1;
             for (int c = 0; c < tlw; c++) {
                 int in = c >= b0 && c < b1;
-                tui_text(y, 34 + c, 1, in ? verdict_color(verdict) : C_GREY, bg, A_BOLD, in ? "█" : "·");
+                tui_text(y, 34 + c, 1, in ? (on ? C_BWHITE : verdict_color(verdict)) : (on ? C_BCYAN : C_GREY), bg, A_BOLD, in ? "█" : "·");
             }
-            tui_text(y, 35 + tlw, w - 36 - tlw, on ? C_BLACK : C_DEF, bg, on ? A_BOLD : 0, json_gets(inc, "title", ""));
+            tui_text(y, 35 + tlw, w - 36 - tlw, on ? SEL_FG : C_DEF, bg, on ? A_BOLD : 0, json_gets(inc, "title", ""));
             y++;
         }
         if (!n) {
