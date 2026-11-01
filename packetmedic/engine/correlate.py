@@ -52,6 +52,9 @@ FOLD_RULES: list[FoldRule] = [
      lambda c, s: bool({c.metrics.get("rogue_server"), *c.metrics.get("rogue_dns", [])} & set(s.hosts))),
     ("dns_failure", None, {"dns_slow", "dns_nxdomain"},
      lambda c, s: c.metrics.get("server") in s.hosts),
+    # packet loss to a server also explains slow responses from that same server
+    ("tcp_retransmissions", None, {"high_latency"},
+     lambda c, s: c.metrics.get("server") == s.metrics.get("server")),
 ]
 
 

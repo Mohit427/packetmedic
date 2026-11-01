@@ -33,14 +33,60 @@ except Exception:  # pragma: no cover - older Scapy without layer filtering
 
 _LINKTYPES = {1: Ether, 113: CookedLinux, 228: IP, 229: IPv6}
 _RAW_IP_LINKTYPES = {12, 14, 101}
-SUPPORTED_LINKTYPES = set(_LINKTYPES) | _RAW_IP_LINKTYPES
+_WIFI_LINKTYPE = 105            # IEEE 802.11 without radiotap
+SUPPORTED_LINKTYPES = set(_LINKTYPES) | _RAW_IP_LINKTYPES | {_WIFI_LINKTYPE}
+
+_SNAP = b"\xaa\xaa\x03\x00\x00\x00"
+_ETHERTYPES = {b"\x08\x00", b"\x86\xdd", b"\x08\x06", b"\x81\x00", b"\x88\xa8", b"\x88\xcc", b"\x88\x8e"}
 
 
 class UnsupportedLinkType(Exception):
     pass
 
 
+def wifi_to_ethernet(data: bytes) -> bytes | None:
+    """Convert an unencrypted 802.11 data frame into an equivalent Ethernet frame.
+
+    Windows' pktmon records Wi-Fi traffic as raw 802.11 frames but labels the
+    file as Ethernet (link type 1). We recognise the 802.11 header + LLC/SNAP
+    signature, map the 802.11 addresses to Ethernet src/dst according to the
+    ToDS/FromDS bits, and rebuild a normal Ethernet header. Returns None if the
+    bytes are not such a frame.
+    """
+    if len(data) < 32:
+        return None
+    fc0, fc1 = data[0], data[1]
+    if (fc0 & 0x0C) != 0x08 or (fc0 & 0x03) != 0:   # must be a version-0 DATA frame
+        return None
+    if fc1 & 0x40:                                  # encrypted payload: can't read it
+        return None
+    to_ds, from_ds = fc1 & 0x01, fc1 & 0x02
+    hdr = 24 + (6 if to_ds and from_ds else 0)
+    if fc0 & 0x80:                                  # QoS data subtypes carry a QoS field
+        hdr += 2
+        if fc1 & 0x80:                              # +HT control when the order bit is set
+            hdr += 4
+    if data[hdr:hdr + 6] != _SNAP or len(data) < hdr + 8:
+        return None
+    a1, a2, a3, a4 = data[4:10], data[10:16], data[16:22], data[24:30]
+    if not to_ds and not from_ds:
+        dst, src = a1, a2
+    elif to_ds and not from_ds:
+        dst, src = a3, a2
+    elif from_ds and not to_ds:
+        dst, src = a1, a3
+    else:
+        dst, src = a3, a4
+    return dst + src + data[hdr + 6:hdr + 8] + data[hdr + 8:]
+
+
 def dissect(frame: RawFrame):
+    if frame.linktype == _WIFI_LINKTYPE or (frame.linktype == 1 and frame.data[12:14] not in _ETHERTYPES):
+        eth = wifi_to_ethernet(frame.data)
+        if eth is not None:
+            return Ether(eth)
+        if frame.linktype == _WIFI_LINKTYPE:
+            raise UnsupportedLinkType(frame.linktype)   # management/encrypted frames
     cls = _LINKTYPES.get(frame.linktype)
     if cls is None:
         if frame.linktype in _RAW_IP_LINKTYPES and frame.data:

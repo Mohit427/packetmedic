@@ -125,7 +125,7 @@ def _latency(inc: Incident) -> Explanation:
                     "Look at bandwidth usage on the router for heavy users.",
                     "Test from a wired connection to rule out Wi-Fi.",
                     "If it's one server, contact its owner or check its load."],
-        wireshark_filter=f"ip.addr=={m['server']} && tcp.analysis.ack_rtt > 0.3")
+        wireshark_filter=f"ip.addr=={m['server']} && tcp.analysis.ack_rtt > 0.5")
 
 
 def _dns_failure(inc: Incident) -> Explanation:

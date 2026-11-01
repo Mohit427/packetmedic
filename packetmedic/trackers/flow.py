@@ -28,6 +28,7 @@ class Direction:
     last_ack: int | None = None
     ttl: int | None = None                          # hop count of normal packets
     bytes: int = 0
+    keepalives: int = 0
 
 
 @dataclass(slots=True)
@@ -73,10 +74,10 @@ class FlowTracker:
                 client = a
             elif r.tcp_flags & SYN and r.tcp_flags & ACK:
                 client = b
-            elif r.sport < 1024 <= r.dport:
-                client = b
             else:
-                client = a
+                # handshake not captured (capture started mid-conversation):
+                # the side with the lower port is the service, the other the client
+                client = b if r.sport < r.dport else a
             server = b if client == a else a
             flow = self.flows.get_or_create(
                 key, lambda: Flow(client[0], client[1], server[0], server[1], r.ts, r.ts))
@@ -123,6 +124,12 @@ class FlowTracker:
         lim = self.limits
         seg = (r.seq, r.payload_len)
         end = r.seq + r.payload_len
+        # TCP keep-alive: a 0/1-byte probe that deliberately re-uses the last
+        # sequence number ("are you still there?"). Not data loss - ignore it,
+        # exactly like Wireshark's tcp.analysis.keep_alive rule.
+        if r.payload_len <= 1 and me.max_seq_end is not None and r.seq == me.max_seq_end - 1:
+            me.keepalives += 1
+            return
         me.data_pkts += 1
         if seg in me.seen or (me.max_seq_end is not None and end <= me.max_seq_end
                               and me.max_seq_end - end < 1 << 30):

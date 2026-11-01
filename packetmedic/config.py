@@ -42,7 +42,7 @@ class Thresholds:
     dns_slow_s: float = 0.5
     dns_ttl_tolerance: int = 5
     # Latency
-    latency_high_s: float = 0.3
+    latency_high_s: float = 0.5               # India <-> US is ~300 ms and perfectly normal
     latency_min_samples: int = 3
     # ARP
     arp_unsolicited_min: int = 3

@@ -10,7 +10,8 @@ from .detectors import DETECTORS
 from .engine.correlate import correlate
 from .engine.score import health_score
 from .explain.templates import explain
-from .ingest.decode import SUPPORTED_LINKTYPES, dissect, to_record
+from .ingest.decode import SUPPORTED_LINKTYPES, dissect, to_record, wifi_to_ethernet
+from .util import BoundedDict
 from .ingest.pcapfile import iter_raw_frames
 from .ingest.validator import validate_capture
 from .models import Report, Signal
@@ -30,9 +31,22 @@ def analyze(path: str | os.PathLike, settings: Settings = DEFAULT_SETTINGS,
     unsupported: set[int] = set()
     deadline = t0 + settings.limits.max_seconds
 
+    recent: BoundedDict = BoundedDict(4096)   # payload hash -> last time seen
+    duplicates = 0
     for n, frame in enumerate(iter_raw_frames(path, settings.limits, warnings)):
         if frame.linktype not in SUPPORTED_LINKTYPES:
             unsupported.add(frame.linktype)
+            continue
+        # Capture duplicates: the exact same packet (same IP ID, same bytes)
+        # recorded twice within 50 ms - pktmon logging one packet at two points,
+        # or an 802.11 link-layer retry. A real TCP retransmission is a NEW IP
+        # packet (different IP ID), so it is never removed by this check.
+        eth = wifi_to_ethernet(frame.data) if frame.linktype in (1, 105) else None
+        key = hash((eth or frame.data)[12:] if (eth or frame.linktype == 1) else frame.data)
+        last = recent.get(key)
+        recent[key] = frame.ts
+        if last is not None and 0 <= frame.ts - last <= 0.05:
+            duplicates += 1
             continue
         try:
             rec = to_record(dissect(frame), frame)
@@ -50,6 +64,8 @@ def analyze(path: str | os.PathLike, settings: Settings = DEFAULT_SETTINGS,
 
     if unsupported:
         warnings.append(f"Skipped packets with unsupported link type(s): {sorted(unsupported)}.")
+    if duplicates:
+        warnings.append(f"Ignored {duplicates} duplicate copies of packets recorded twice by the capture tool.")
     if malformed:
         warnings.append(f"{malformed} malformed packet(s) could not be decoded and were skipped.")
     if ctx.flows.flows.evicted:

@@ -30,7 +30,7 @@ A native **C** terminal front-end for PacketMedic with an htop-style look. From 
 
 The detection, verdict and explanation logic stays in the existing Python engine. `pmtui` drives it as a subprocess and renders its JSON report.
 
-**Why:** there is a single source of truth for detection. The 61 tests and `eval.py` cover what the TUI shows, and the CLI, web and TUI can never disagree. Re-implementing ten detectors in C before the deadline would double the bug surface for no user benefit. Everything *around* the engine (terminal UI, JSON parsing, process control, live capture orchestration, file validation, links) is new C code written for this project.
+**Why:** there is a single source of truth for detection. The 66 tests and `eval.py` cover what the TUI shows, and the CLI, web and TUI can never disagree. Re-implementing ten detectors in C before the deadline would double the bug surface for no user benefit. Everything *around* the engine (terminal UI, JSON parsing, process control, live capture orchestration, file validation, links) is new C code written for this project.
 
 **No third-party C libraries.** No ncurses, no cJSON, no libpcap. The TUI uses ANSI/VT escape codes directly (Windows 10+ console, Windows Terminal, any Linux/macOS terminal), so judges only need a C compiler.
 

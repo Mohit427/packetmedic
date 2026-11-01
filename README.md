@@ -82,7 +82,7 @@ The dashboard shows health/verdict meters, protocol meters, a findings table wit
 **Accuracy check and tests:**
 ```bash
 python eval.py      # precision / recall / verdict accuracy on the labeled samples
-pytest -q           # 61 tests: detection, fuzzing, truncation, injection, anonymization
+pytest -q           # 66 tests: detection, fuzzing, truncation, injection, anonymization, real Wi-Fi capture quirks
 ```
 
 ---
@@ -153,6 +153,7 @@ app.py (Streamlit) · eval.py · samples/generate.py · tests/
 ## Limitations
 
 - Heuristic thresholds (in `config.py`) are tuned on simulated traffic; very unusual networks may need tuning.
+- Live Windows captures (pktmon) on Wi-Fi store raw 802.11 frames mislabelled as Ethernet; PacketMedic detects and converts them, ignores duplicate copies the capture tool records twice, and does not mistake TCP keep-alives for packet loss.
 - Encrypted payloads aren't inspected (not needed for these diagnoses). IPv6 is parsed for TCP analysis, but ARP/DHCP checks are IPv4-only.
 - One capture point sees one view of the network: problems on segments the capture didn't see can't be diagnosed.
 
