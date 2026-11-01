@@ -15,3 +15,11 @@ cli_c/pmtui.exe
 cli_c/build/
 build/
 dist/
+landing/node_modules/
+landing/dist/
+.impeccable/review/
+.impeccable/decision/*.log
+!web/landing.html
+!landing/index.html
+.impeccable/questions/
+landing/tsconfig.tsbuildinfo

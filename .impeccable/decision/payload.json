@@ -1,0 +1,115 @@
+{
+  "title": "Choose the visual world for the PacketMedic landing page",
+  "question": "The roll assigned the Radiology Reading Room. Keep it, take an alternate, or re-roll.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Radiology Reading Room",
+      "kicker": "THE ROLL",
+      "lineage": "hospital radiology lightboxes: backlit films, film clips, grease-pencil reads",
+      "thesis": "A packet capture is a scan; PacketMedic reads it like a radiologist. The page is a dark reading room where real captures hang on a lightbox as glowing films, and every finding is circled in grease pencil with its verdict. It refuses the dark-SaaS hero with a terminal screenshot.",
+      "palette": ["#0b1016", "#e9f1f6", "#9fb8c8", "#ffd23f", "#ff4b3e", "#4f8dff"],
+      "materials": ["backlit translucent film", "steel film clips", "grease-pencil strokes", "fluorescent lightbox glow"],
+      "viewport": "A wide lightbox switches on (tube flicker) behind one film: the real timeline of the mixed outage+attack sample drawn as an X-ray trace. A grease-pencil ring circles the port-scan burst, labelled ATTACK in red; a second ring around the DNS timeouts, labelled FAULT in blue. Headline on the reading-room wall: Same broken network. Two different diagnoses. Download for Windows and Open the web demo sit as two clipped film tabs under it.",
+      "risk": "Can tip into medical-drama costume if annotations are cute instead of factual; every mark must point at real frames.",
+      "raised": [
+        {"from": "challenger-generative-identity", "raise": "One seed drives everything: every film, trace and number on the page is drawn from the same real sample captures, never decorative waveforms."},
+        {"from": "challenger-hoffmann-lattice", "raise": "Lightbox panels sit on a strict modular grid of identical film cells; nothing floats off-module."},
+        {"from": "challenger-crt-arcade", "raise": "Palette law: red, yellow and blue are reserved for ATTACK, SUSPICIOUS and FAULT. No other element may use them."},
+        {"from": "challenger-glazier-partition", "raise": "One film, one statement: each lightbox cell carries exactly one finding or one fact."},
+        {"from": "challenger-pickling-calendar", "raise": "Time is the reading axis: every film reads left to right along the capture's real seconds."}
+      ]
+    },
+    {
+      "id": "model-pick",
+      "label": "Field Triage Tags",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "START mass-casualty triage tags: colour bands, tear-off strips, grommets",
+      "thesis": "PacketMedic triages a network like a field medic triages casualties. Each finding is a printed triage tag with its colour strip torn to ATTACK, SUSPICIOUS or FAULT, tied to the evidence.",
+      "palette": ["#f3efe6", "#1d1d1b", "#d7262e", "#f2c230", "#2d6cdf", "#3a8f4b"],
+      "materials": ["heavy card stock", "perforated tear-off strips", "brass grommets", "stencilled capitals"],
+      "viewport": "A stack of triage tags fanned across the viewport, the top tag filled out for the port scan: verdict strip torn at ATTACK, evidence frames handwritten, fix in the notes field. CTAs are the tag's two tear-off stubs.",
+      "risk": "Most familiar reading of 'medic'; the paper ground drifts toward the cream-and-red default unless the card stock stays industrial."
+    },
+    {
+      "id": "challenger-nixie",
+      "label": "Nixie Laboratory Counter",
+      "verdict": "competitive",
+      "lineage": "nixie-tube lab counters and frequency meters",
+      "thesis": "PacketMedic's numbers as glowing instruments: health score, packets, attacks and faults each own a tube bank that counts up as a real sample is analysed.",
+      "palette": ["#0d0d0f", "#ff7a1a", "#3b3b40", "#c9c9cc"],
+      "materials": ["glass tube envelopes", "blackened steel chassis", "anode mesh", "engraved caps"],
+      "viewport": "A steel instrument panel: four tube banks count up the analysis of the mixed sample (HEALTH 055, ATTACKS 1, FAULTS 1), engraved CTAs below.",
+      "case": "Fuses well for the metrics; loses on explaining WHY a finding is an attack, the product's core claim.",
+      "risk": "Becomes a dashboard of numbers without the explanation that makes PacketMedic different.",
+      "hero": "https://impeccable.style/worlds/cards/signals-instruments-nixie-laboratory-counter-hero.webp",
+      "board": "https://impeccable.style/worlds/cards/signals-instruments-nixie-laboratory-counter.webp"
+    },
+    {
+      "id": "challenger-generative-identity",
+      "label": "Generative Parametric Identity",
+      "verdict": "declined",
+      "lineage": "seed-driven brand systems",
+      "palette": ["#111111", "#7dd3fc"],
+      "materials": ["parametric SVG", "seeded palette"],
+      "case": "Judges don't recognise a reseeding logo; it says nothing about diagnosis.",
+      "kept": "One seed (the real captures) drives every visual on the page.",
+      "hero": "https://impeccable.style/worlds/cards/generative-parametric-identity-hero.webp"
+    },
+    {
+      "id": "challenger-hoffmann-lattice",
+      "label": "Wiener Werkstätte Showroom",
+      "verdict": "declined",
+      "lineage": "Hoffmann pierced-metal lattices",
+      "palette": ["#ffffff", "#000000"],
+      "materials": ["lacquer black rules", "hammered silver"],
+      "case": "Luxury showroom has no tie to networks or diagnosis.",
+      "kept": "Strict modular grid discipline.",
+      "hero": "https://impeccable.style/worlds/cards/design-canon-hoffmann-gridsmith-showroom-hero.webp"
+    },
+    {
+      "id": "challenger-crt-arcade",
+      "label": "CRT Arcade Pixel Glow",
+      "verdict": "declined",
+      "lineage": "arcade cabinet screens",
+      "palette": ["#000000", "#ffd700"],
+      "materials": ["scanlines", "phosphor bloom"],
+      "case": "Hacker-arcade nostalgia undercuts a serious diagnostic tool and reads as a game.",
+      "kept": "Palette as law: verdict colours are reserved.",
+      "hero": "https://impeccable.style/worlds/cards/medium-native-crt-arcade-pixel-glow-hero.webp"
+    },
+    {
+      "id": "challenger-glazier-partition",
+      "label": "Glazier Colour-field Partition",
+      "verdict": "declined",
+      "lineage": "steel-framed glass partitions",
+      "palette": ["#111111", "#1f4fd1"],
+      "materials": ["glazing bars", "seeded glass"],
+      "case": "Calm architecture, no link to packets or verdicts.",
+      "kept": "One pane, one statement.",
+      "hero": "https://impeccable.style/worlds/cards/craft-making-glazier-colorfield-partition-hero.webp"
+    },
+    {
+      "id": "challenger-pickling-calendar",
+      "label": "Pickling Brine Calendar",
+      "verdict": "declined",
+      "lineage": "fermentation shelves",
+      "palette": ["#e8e4d8", "#c8434b"],
+      "materials": ["jar glass", "kraft labels"],
+      "case": "Food world; no audience identification at all.",
+      "kept": "Time as the reading axis.",
+      "hero": "https://impeccable.style/worlds/cards/food-fermentation-culinary-theater-pickling-brine-calendar-hero.webp"
+    }
+  ],
+  "reroll": {"registers": ["safer", "bolder"]},
+  "canon": true,
+  "canonCard": {
+    "label": "The category standard",
+    "thesis": "A dark developer-tool landing page: big headline, terminal screenshot, feature grid, download button.",
+    "palette": ["#0a0a0a", "#fafafa", "#22c55e"],
+    "materials": ["clean grid", "product screenshots"],
+    "viewport": "Headline and two buttons left, pmtui screenshot right, three feature cards below.",
+    "risk": "Indistinguishable from every other security-tool page by design."
+  },
+  "steer": true
+}

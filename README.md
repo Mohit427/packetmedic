@@ -100,9 +100,10 @@ python -m packetmedic analyze capture.pcap --json -                  # JSON to s
 ```
 (In the Windows zip: `engine\packetmedic.exe analyze capture.pcap ...`)
 
-## 3. Web demo (demonstration only)
+## 3. Website and web demo (demonstration only)
 
-**Hosted:** **[packetmedic.streamlit.app](https://packetmedic.streamlit.app)**. Open it and the mixed outage + attack sample is already loaded.
+**Hosted:** **[packetmedic.streamlit.app](https://packetmedic.streamlit.app)** opens the landing page, with downloads, the Windows warning explained and the SHA-256 checksum. **[/demo](https://packetmedic.streamlit.app/demo)** opens the web demo, with the mixed outage + attack sample already loaded.
+The landing page is a React app in `landing/` that uses ReactBits components (DecryptedText, CountUp, Noise, SpotlightCard). It is built into one self-contained file, `web/landing.html`, which Streamlit embeds (`app.py` routes `/` to `views/landing.py` and `/demo` to `views/demo.py`). Every trace and number on it comes from real engine output (`python tools/landing_data.py`). To rebuild: `cd landing && npm install && npm run build`, then copy `dist/index.html` to `web/landing.html`.
 **Locally:** `streamlit run app.py --server.address 127.0.0.1`, or press **F3** inside pmtui.
 
 It exists so anyone can try the engine in a browser without installing anything. It is **not** the product: it has no live capture, and the hosted copy processes uploads on a cloud server (the app shows this warning). Use pmtui for real network diagnosis.
@@ -194,6 +195,10 @@ app.py (Streamlit) · eval.py · samples/generate.py · tests/
 | [Plotly](https://plotly.com/python/) 7.1 | MIT | Timeline chart |
 | [Jinja2](https://jinja.palletsprojects.com) 3.1 | BSD-3 | HTML report rendering (autoescaped) |
 | [Rich](https://github.com/Textualize/rich) 15 | MIT | Terminal output |
+| [React](https://react.dev) 19, [Vite](https://vite.dev) 7, vite-plugin-singlefile | MIT | Landing page build |
+| [ReactBits](https://reactbits.dev) components | MIT + Commons Clause | Landing page effects (DecryptedText, CountUp, Noise, SpotlightCard) |
+| [Motion](https://motion.dev), [Lucide](https://lucide.dev) | MIT, ISC | Landing page animation and icons |
+| Big Shoulders Display, Atkinson Hyperlegible, JetBrains Mono, Permanent Marker (via Fontsource) | OFL / Apache-2.0 | Landing page typefaces |
 | [pytest](https://pytest.org) 9 | MIT | Tests |
 
 The C terminal app (`cli_c/`) uses only the C standard library and the OS APIs (Win32 / POSIX). No external APIs or AI services are used. All detection, correlation, verdict, explanation and pcap reading/writing logic is our own code. We do not wrap Wireshark or tshark.
