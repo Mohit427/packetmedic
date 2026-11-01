@@ -46,6 +46,7 @@ int  tui_key(int timeout_ms);               /* K_NONE on timeout */
 #include <stdio.h>
 void tui_force_size(int w, int h);          /* render without a terminal */
 void tui_dump(FILE *f);                     /* grid as plain text */
+void tui_dump_json(FILE *f);                /* grid as JSON colour runs */
 
 /* helpers */
 int  utf8_width(const char *s);             /* display columns */

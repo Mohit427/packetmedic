@@ -109,6 +109,31 @@ img, svg { display: block; }
 .hero-note { font-size: 14px; color: var(--ink-soft); max-width: 52ch; margin: 0; }
 .hero-note a { color: var(--ink); font-weight: 700; }
 
+.hero-side { display: grid; gap: 14px; min-width: 0; }
+.monitor { margin: 0; min-width: 0; container-type: inline-size; padding: 7px 9px 8px; border-radius: 12px;
+  background: linear-gradient(180deg, #46525f, #252e38 45%, #181f27); color: var(--tissue);
+  box-shadow: 0 16px 30px -14px rgba(11,16,22,.75), inset 0 1px 0 rgba(255,255,255,.2); }
+.mon-top { display: flex; align-items: center; gap: 8px; height: 20px; padding: 0 3px 3px;
+  font-family: var(--f-display); font-weight: 700; font-size: 13px; letter-spacing: .08em; text-transform: uppercase; }
+.mon-led { width: 7px; height: 7px; border-radius: 50%; background: #6ee787; animation: beat 1s ease-out infinite; }
+@keyframes beat { 0%, 22% { opacity: 1; } 60%, 100% { opacity: .3; } }
+.mon-ecg { flex: 1; min-width: 0; height: 16px; overflow: hidden; }
+.mon-ecg path { fill: none; stroke: #6ee787; stroke-width: 1.4; vector-effect: non-scaling-stroke; }
+.mon-ecg-run { animation: ecg-run 2s linear infinite; }
+@keyframes ecg-run { to { transform: translateX(-120px); } }
+.mon-real { font-family: var(--f-mono); font-weight: 400; font-size: 9.5px; letter-spacing: .04em; color: var(--tissue-dim); }
+/* 80 columns of a 0.6em monospace fill the screen exactly */
+.mon-screen { position: relative; overflow: hidden; border-radius: 4px; background: #05080c; padding: 3px 0;
+  box-shadow: inset 0 0 18px rgba(0,0,0,.9); font-family: var(--f-mono), 'Cascadia Mono', Consolas, monospace;
+  font-size: calc((100cqw - 2px) / 48); line-height: 1.2; white-space: pre; }
+.mon-row { position: relative; height: 1.2em; }
+.mon-row span { position: absolute; top: 0; height: 1.2em; display: block; }
+.mon-keys { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5px; margin-top: 6px;
+  font-family: var(--f-display); font-weight: 700; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; text-align: center; }
+.mon-keys span { padding: 1px 0 2px; border-radius: 3px; background: #2c3641; color: var(--tissue-dim); box-shadow: inset 0 1px 0 rgba(255,255,255,.1); }
+.mon-keys span.on { background: var(--glow); color: var(--ink); }
+@media (prefers-reduced-motion: reduce) { .mon-led, .mon-ecg-run { animation: none; } }
+
 /* film tabs = the page's buttons */
 .tabs { display: flex; flex-wrap: wrap; gap: 10px; }
 .tab {

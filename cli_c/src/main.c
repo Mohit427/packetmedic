@@ -40,6 +40,8 @@ static int snapshot(App *a, int argc, char **argv) {
         cap = argv[i];
     }
     g_snapshot_mode = 1;
+    const char *env_sel = getenv("PMTUI_SNAPSHOT_SEL"), *env_fmt = getenv("PMTUI_SNAPSHOT_FORMAT");
+    if (env_sel) g_snapshot_sel = atoi(env_sel);
     tui_force_size(w, h);
     if (engine_check(&a->eng) != 0) { fprintf(stderr, "%s\n", a->eng.error); return 2; }
     if (!strcmp(which, "dashboard")) {
@@ -55,7 +57,8 @@ static int snapshot(App *a, int argc, char **argv) {
     } else {
         screen_menu(a);
     }
-    tui_dump(stdout);
+    if (env_fmt && !strcmp(env_fmt, "json")) tui_dump_json(stdout);
+    else tui_dump(stdout);
     return 0;
 }
 

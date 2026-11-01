@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Activity, Check, Copy, Download, ExternalLink, Github, MonitorPlay, ShieldCheck, TriangleAlert } from 'lucide-react';
+import Monitor from './Monitor';
 import Film, { type Mark, type Verdict, useInView } from './Film';
 import DecryptedText from './reactbits/DecryptedText';
 import CountUp from './reactbits/CountUp';
@@ -87,10 +88,13 @@ function Hero() {
         <div className={`lightbox-panel ${on ? 'on' : ''}`}>
           <div className="hero-head">
             <h1 className="hero-title"><span>Same broken network.</span><span className="second">Two different diagnoses.</span></h1>
-            <p className="hero-sub">
-              PacketMedic reads a packet capture the way a radiologist reads a scan. It finds the <strong>faults</strong> and
-              the <strong>attacks</strong> hidden in the traffic, tells you which is which, and points at the exact packets.
-            </p>
+            <div className="hero-side">
+              <Monitor />
+              <p className="hero-sub">
+                PacketMedic reads a packet capture the way a radiologist reads a scan. It finds the <strong>faults</strong> and
+                the <strong>attacks</strong> hidden in the traffic, tells you which is which, and points at the exact packets.
+              </p>
+            </div>
           </div>
           <div className="hero-film-wrap">
             <SpotlightCard className="film-spot" theme="dark" spotlightColor="rgba(225, 238, 250, 0.22)" spotlightSize={340} borderGlow={0} grain={0}>

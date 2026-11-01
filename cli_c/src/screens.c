@@ -11,6 +11,7 @@
 #define MIN_H 24
 
 int g_snapshot_mode;   /* render one frame and return (pmtui --snapshot) */
+int g_snapshot_sel;
 
 /* selection bar: bright white on blue (bold black renders as grey in many terminals) */
 #define SEL_FG C_BWHITE
@@ -291,6 +292,7 @@ static int expected_color(const char *e) {
 
 int screen_samples(App *a, char *out, size_t outlen) {
     static int sel = 0, top = 0;
+    if (g_snapshot_mode) sel = g_snapshot_sel;
     JVal *cat = json_root(a->catalog);
     int n = (int)json_len(cat);
     if (!n) {
@@ -944,7 +946,7 @@ static int draw_dashboard(App *a, int present) {
 static int redraw_cb(App *a, int present) { return draw_dashboard(a, present); }
 
 int screen_dashboard(App *a) {
-    g_sel = 0;
+    g_sel = g_snapshot_mode ? g_snapshot_sel : 0;
     g_dscroll = 0;
     g_full = 0;
     for (;;) {

@@ -360,6 +360,41 @@ void tui_dump(FILE *f) {
     }
 }
 
+/* grid as JSON colour runs: real frames for the landing page's monitor */
+void tui_dump_json(FILE *f) {
+    fprintf(f, "{\"w\":%d,\"h\":%d,\"rows\":[", g_w, g_h);
+    for (int y = 0; y < g_h; y++) {
+        fprintf(f, "%s[", y ? "," : "");
+        int x = 0, first = 1;
+        while (x < g_w) {
+            Cell *c = &g_grid[y * g_w + x];
+            int e = x;
+            while (e < g_w) {
+                Cell *d = &g_grid[y * g_w + e];
+                if (d->fg != c->fg || d->bg != c->bg || d->attr != c->attr) break;
+                e++;
+            }
+            int last = e;
+            if (c->bg < 0) while (last > x && g_grid[y * g_w + last - 1].cp == ' ') last--;
+            if (last > x) {
+                fprintf(f, "%s[%d,%d,%d,%d,\"", first ? "" : ",", x, c->fg, c->bg, c->attr);
+                for (int i = x; i < last; i++) {
+                    unsigned cp = g_grid[y * g_w + i].cp;
+                    if (cp == '"' || cp == 0x5C) fputc(0x5C, f);
+                    char u[4];
+                    fwrite(u, 1, utf8_encode(cp, u), f);
+                }
+                fputs("\"]", f);
+                first = 0;
+            }
+            x = e;
+        }
+        fputc(']', f);
+    }
+    fputs("]}", f);
+    fputc(10, f);
+}
+
 void tui_present(void) {
     char tmp[64];
     if (!g_active) return;          /* snapshot / non-interactive mode */

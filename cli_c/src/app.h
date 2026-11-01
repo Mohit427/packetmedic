@@ -39,5 +39,6 @@ int screen_dashboard(App *a);
 void screen_message(App *a, const char *title, const char *text, int fg);
 
 extern int g_snapshot_mode;
+extern int g_snapshot_sel;    /* row selected in a snapshot */
 
 #endif

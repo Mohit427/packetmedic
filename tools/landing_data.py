@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -88,10 +89,28 @@ def eval_stats() -> dict:
             "false_alarms": fp, "verdicts_right": vr, "verdicts_total": vt, "samples": len(truth)}
 
 
+def pmtui_exe() -> Path:
+    name = "pmtui.exe" if sys.platform == "win32" else "pmtui"
+    found = [p for p in (ROOT / "build" / name, ROOT / "cli_c" / name) if p.exists()]
+    return max(found, key=lambda p: p.stat().st_mtime)
+
+
+def pmtui_frames() -> list[dict]:
+    """Real pmtui screens, with their real colours, for the hero's bedside monitor."""
+    mixed = str(PCAPS / "11_mixed_outage_and_attack.pcapng")
+    shots = [("main menu", ["menu"], 0), ("samples", ["samples"], 10),
+             ("attack", ["dashboard", mixed], 0), ("fault", ["dashboard", mixed], 1)]
+    frames = []
+    for label, args, sel in shots:
+        env = {**os.environ, "PMTUI_SNAPSHOT_FORMAT": "json", "PMTUI_SNAPSHOT_SEL": str(sel)}
+        out = subprocess.run([str(pmtui_exe()), "--snapshot", *args, "80x24"], capture_output=True, text=True,
+                             encoding="utf-8", cwd=ROOT, timeout=120, env=env, check=True)
+        frames.append({"label": label, **json.loads(out.stdout)})
+    return frames
+
+
 def pmtui_snapshot() -> list[str]:
-    exe = ROOT / "cli_c" / ("pmtui.exe" if sys.platform == "win32" else "pmtui")
-    if not exe.exists():
-        exe = ROOT / "build" / "pmtui.exe"
+    exe = pmtui_exe()
     out = subprocess.run([str(exe), "--snapshot", "dashboard", str(PCAPS / "11_mixed_outage_and_attack.pcapng"),
                           "96x26"], capture_output=True, text=True, encoding="utf-8", cwd=ROOT, timeout=120)
     return out.stdout.rstrip("\n").split("\n")
@@ -110,6 +129,7 @@ def main() -> int:
         "fuzz_cases": 35,
         "catalog": json.loads((ROOT / "samples" / "catalog.json").read_text(encoding="utf-8")),
         "pmtui": pmtui_snapshot(),
+        "pmtui_frames": pmtui_frames(),
         "release": {
             "file": zpath.name,
             "size_mb": round(zpath.stat().st_size / 1e6, 1) if zpath.exists() else None,
