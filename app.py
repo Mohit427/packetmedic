@@ -63,8 +63,8 @@ with st.sidebar:
     if PUBLIC_DEMO:
         st.caption(f"v{__version__} · finds faults & attacks in packet captures and explains them.")
         st.info("**Public demo.** Uploaded files are processed on this cloud server and deleted afterwards. "
-                "Use the bundled samples or non-sensitive captures. For private traffic, run PacketMedic "
-                "locally (fully offline): see the GitHub README.", icon="🌐")
+                "Use the bundled samples or non-sensitive captures. For private traffic, use the "
+                "terminal app (fully offline).", icon="🌐")
     else:
         st.caption(f"v{__version__} · finds faults & attacks in packet captures and explains them. "
                    "Runs 100% offline: your capture never leaves this machine.")
@@ -109,6 +109,16 @@ with st.sidebar:
                           help="Replace addresses with consistent fake ones in everything shown and exported.")
     st.divider()
     st.caption("Legend: 🚨 attack · ⚠️ suspicious · 🔧 fault")
+
+
+if PUBLIC_DEMO:
+    st.warning(
+        "**This web page is a demonstration only.** The actual PacketMedic product is the **terminal app "
+        "`pmtui`**: an offline, htop-style dashboard that also **captures and diagnoses live traffic** on "
+        "your own machine, which a cloud server can't do. "
+        "[⬇ Download PacketMedic for Windows](https://github.com/Mohit427/packetmedic/releases/latest) · "
+        "[Source & docs](https://github.com/Mohit427/packetmedic)",
+        icon="🖥️")
 
 
 @st.cache_data(show_spinner=False, max_entries=8)

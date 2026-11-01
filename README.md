@@ -5,6 +5,21 @@
 > **Team Three Pointers** · Network track · 24h Cybersecurity Hackathon · IIITDM Kancheepuram
 > Demo video: _<add link here>_
 
+> [!IMPORTANT]
+> **The product is the terminal app, `pmtui`.** It's a native C, htop-style dashboard that analyses sample captures, your own files, **and live traffic captured from your machine**, fully offline.
+> **⬇ Get it: [PacketMedic for Windows (zip, no install)](https://github.com/Mohit427/packetmedic/releases/latest)**
+>
+> The web version at **[packetmedic.streamlit.app](https://packetmedic.streamlit.app)** is **for demonstration purposes only**: a quick, no-install way to see the same analysis engine on the bundled samples. It **cannot capture live traffic**, and anything uploaded there is processed on a cloud server. Use the terminal app for real diagnosis.
+
+| | **`pmtui` terminal app: primary product** | Web demo: demonstration only |
+|---|---|---|
+| Analyse bundled samples | ✅ | ✅ |
+| Analyse your own capture file | ✅ local, never leaves your machine | ⚠ uploaded to a cloud server |
+| **Live capture of your network** | ✅ (5–300 s, passive, consent screen) | ❌ a cloud server can't see your network |
+| Works offline | ✅ | ❌ |
+| HTML report, JSON, evidence .pcap export | ✅ | ✅ |
+| Install | unzip and run (Windows) or build from source | none, open the link |
+
 ---
 
 ## The problem
@@ -34,40 +49,27 @@ PacketMedic reads a `.pcap` / `.pcapng` file and produces a **diagnosis**, not a
 
 ---
 
-## Download (Windows, no install)
+## 1. The product: `pmtui` terminal app
 
-Grab **`PacketMedic-1.0.0-win64.zip`** from the [Releases page](https://github.com/Mohit427/packetmedic/releases). Unzip it, then run `pmtui.exe`. No Python or setup is needed: the analysis engine is bundled (frozen with PyInstaller), and the 15 sample captures are included. The Streamlit web dashboard requires the full install below; the HTML report (F2) works in the zip.
-To rebuild the zip: `pip install pyinstaller`, then `python tools/build_release.py` (needs MSYS2 gcc).
+### Option A: download for Windows (no install, recommended)
 
-## Quick start from source (about 2 minutes)
+1. Download **`PacketMedic-1.0.0-win64.zip`** from **[Releases](https://github.com/Mohit427/packetmedic/releases/latest)**.
+2. Right-click, **Extract All**, open the folder, and run **`pmtui.exe`** (in Windows Terminal for the best look).
+3. Press **1** for a sample, **2** for your own file, **3** for live capture. Live capture needs Terminal opened with **Run as administrator**.
 
-Requires **Python 3.10+** (tested on 3.12, Windows and Linux). No network access, accounts or API keys needed.
+No Python or setup is needed: the analysis engine is bundled (frozen with PyInstaller), and the 15 sample captures are included. Windows SmartScreen may warn about an unsigned app; click **More info → Run anyway**.
+To rebuild the zip yourself: `pip install pyinstaller`, then `python tools/build_release.py` (needs MSYS2 gcc).
+
+### Option B: build from source (Windows, Linux, macOS)
+
+Requires **Python 3.10+** (tested on 3.12) and a C compiler (gcc/clang; MSYS2 on Windows). No network access, accounts or API keys needed.
 
 ```bash
-git clone <this repo> && cd <repo>
+git clone https://github.com/Mohit427/packetmedic.git && cd packetmedic
 python -m venv .venv
 # Windows: .venv\Scripts\activate      Linux/macOS: source .venv/bin/activate
 pip install -r requirements.txt
-```
 
-**Web dashboard** (recommended for the demo):
-```bash
-streamlit run app.py --server.address 127.0.0.1   # local only
-```
-Open the URL shown (http://localhost:8501), then pick a bundled sample or upload your own capture.
-
-**Command line:**
-```bash
-python -m packetmedic analyze samples/pcaps/07_arp_spoofing.pcap
-python -m packetmedic analyze samples/pcaps/11_mixed_outage_and_attack.pcapng --html report.html --json report.json
-python -m packetmedic analyze capture.pcap --evidence-dir evidence/   # one pcap per finding
-python -m packetmedic analyze capture.pcap --anonymize --html shareable.html
-python -m packetmedic analyze capture.pcap --json -                  # JSON to stdout
-```
-
-**Terminal dashboard: `pmtui` (native C, htop-style):**
-
-```bash
 cd cli_c
 mingw32-make        # Windows (MSYS2 / MinGW-w64 gcc)   ->  cli_c\pmtui.exe
 make                # Linux / macOS (gcc or clang)      ->  cli_c/pmtui
@@ -75,6 +77,8 @@ cd ..
 cli_c/pmtui                                         # interactive menu
 cli_c/pmtui samples/pcaps/07_arp_spoofing.pcap     # straight to the dashboard
 ```
+
+### What pmtui does
 
 The main menu offers three options:
 1. **Bundled sample.** Browse all 15 scenarios with a description of each.
@@ -84,7 +88,26 @@ The main menu offers three options:
 The dashboard shows health/verdict meters, protocol meters, a findings table with mini timelines, and a scrollable detail pane with reasoning, evidence frames and a Wireshark filter. It also shows a clickable link to the **HTML report**. **F3** launches the **Streamlit dashboard** for the same capture and shows its `http://localhost:…` link. Other keys: **F2** opens the HTML report, **F5** exports evidence pcaps.
 `pmtui` uses no third-party C libraries (own ANSI terminal layer, own JSON parser) and never invokes a shell. Design: [`docs/CLI_ARCHITECTURE.md`](docs/CLI_ARCHITECTURE.md).
 
-**Accuracy check and tests:**
+## 2. Engine command line (for scripting / automation)
+
+The same engine pmtui uses, scriptable from the shell or CI:
+```bash
+python -m packetmedic analyze samples/pcaps/07_arp_spoofing.pcap
+python -m packetmedic analyze samples/pcaps/11_mixed_outage_and_attack.pcapng --html report.html --json report.json
+python -m packetmedic analyze capture.pcap --evidence-dir evidence/   # one pcap per finding
+python -m packetmedic analyze capture.pcap --anonymize --html shareable.html
+python -m packetmedic analyze capture.pcap --json -                  # JSON to stdout
+```
+(In the Windows zip: `engine\packetmedic.exe analyze capture.pcap ...`)
+
+## 3. Web demo (demonstration only)
+
+**Hosted:** **[packetmedic.streamlit.app](https://packetmedic.streamlit.app)**. Open it and the mixed outage + attack sample is already loaded.
+**Locally:** `streamlit run app.py --server.address 127.0.0.1`, or press **F3** inside pmtui.
+
+It exists so anyone can try the engine in a browser without installing anything. It is **not** the product: it has no live capture, and the hosted copy processes uploads on a cloud server (the app shows this warning). Use pmtui for real network diagnosis.
+
+## Accuracy check and tests
 ```bash
 python eval.py      # precision / recall / verdict accuracy on the labeled samples
 pytest -q           # 66 tests: detection, fuzzing, truncation, injection, anonymization, real Wi-Fi capture quirks
