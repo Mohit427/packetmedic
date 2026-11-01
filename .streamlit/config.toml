@@ -1,0 +1,10 @@
+[server]
+maxUploadSize = 200
+enableXsrfProtection = true
+headless = true
+
+[browser]
+gatherUsageStats = false
+
+[client]
+toolbarMode = "minimal"

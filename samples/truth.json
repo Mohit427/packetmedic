@@ -1,0 +1,85 @@
+{
+  "01_healthy_office.pcap": [],
+  "02_slow_web_retransmissions.pcap": [
+    {
+      "kind": "tcp_retransmissions",
+      "verdict": "FAULT"
+    }
+  ],
+  "03_dns_server_down.pcap": [
+    {
+      "kind": "dns_failure",
+      "verdict": "FAULT"
+    }
+  ],
+  "04_duplicate_ip.pcap": [
+    {
+      "kind": "arp_conflict",
+      "verdict": "FAULT"
+    }
+  ],
+  "05_mtu_blackhole.pcap": [
+    {
+      "kind": "mtu_mismatch",
+      "verdict": "FAULT"
+    }
+  ],
+  "06_port_scan.pcap": [
+    {
+      "kind": "port_scan",
+      "verdict": "ATTACK"
+    }
+  ],
+  "07_arp_spoofing.pcap": [
+    {
+      "kind": "arp_conflict",
+      "verdict": "ATTACK"
+    }
+  ],
+  "08_dns_hijack.pcap": [
+    {
+      "kind": "dns_spoof",
+      "verdict": "ATTACK"
+    }
+  ],
+  "09_rogue_dhcp.pcap": [
+    {
+      "kind": "rogue_dhcp",
+      "verdict": "ATTACK"
+    }
+  ],
+  "10_service_down_and_latency.pcap": [
+    {
+      "kind": "tcp_refused",
+      "verdict": "FAULT"
+    },
+    {
+      "kind": "high_latency",
+      "verdict": "FAULT"
+    }
+  ],
+  "11_mixed_outage_and_attack.pcapng": [
+    {
+      "kind": "dns_failure",
+      "verdict": "FAULT"
+    },
+    {
+      "kind": "port_scan",
+      "verdict": "ATTACK"
+    }
+  ],
+  "12_second_dhcp_misconfigured.pcap": [
+    {
+      "kind": "rogue_dhcp",
+      "verdict": "FAULT"
+    }
+  ],
+  "13_malicious_dns_names.pcap": [
+    {
+      "kind": "dns_nxdomain",
+      "verdict": "FAULT"
+    }
+  ],
+  "14_malformed_truncated.pcap": [],
+  "15_not_a_capture.pcap": "REJECT"
+}

@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+evidence/
+*.html
+!packetmedic/**/*.html
+report*.json
+.DS_Store
+Cybersecurity_Hackathon_v2.pdf
