@@ -225,7 +225,8 @@ int screen_menu(App *a) {
             tui_box(y - 1, px, 10, pw, C_BLUE, C_DEF, "System");
             int iy = y, ix = px + 2, iw = pw - 4;
             char v[160];
-            snprintf(v, sizeof v, "python %s", a->eng.py_version);
+            if (a->eng.frozen) snprintf(v, sizeof v, "bundled engine");
+            else snprintf(v, sizeof v, "python %s", a->eng.py_version);
             tui_meter(iy++, ix, iw, "Engine  ", a->eng.ready ? 1.0 : 0.1, a->eng.ready ? C_BGREEN : C_BRED,
                       a->eng.ready ? v : "NOT READY");
             int ns = (int)json_len(json_root(a->catalog));
@@ -717,6 +718,11 @@ static void open_html(App *a) {
 }
 
 static void launch_web(App *a, int (*redraw)(App *, int)) {
+    if (a->eng.frozen) {
+        set_status(a, C_BYELLOW, "The Streamlit web dashboard needs the full Python install (see README). "
+                                 "Press F2 for the HTML report instead.");
+        return;
+    }
     if (a->web.proc.running && !strcmp(a->web.capture, a->capture) && web_ready(&a->web) == 1) {
         proc_open_url(a->web.url);
         set_status(a, C_BGREEN, "Web dashboard: %s (opened in browser)", a->web.url);
@@ -924,7 +930,9 @@ static int draw_dashboard(App *a, int present) {
         if (a->web.proc.running && !strcmp(a->web.capture, a->capture))
             tui_link(ly, x, w - x - 1, C_BGREEN, C_BLACK, a->web.url, a->web.url);
         else
-            tui_text(ly, x, w - x - 1, C_GREY, C_BLACK, 0, "press F3 to launch the Streamlit dashboard");
+            tui_text(ly, x, w - x - 1, C_GREY, C_BLACK, 0,
+                     a->eng.frozen ? "Streamlit needs the Python install - use F2 (HTML)"
+                                   : "press F3 to launch the Streamlit dashboard");
     }
     const char *k[] = {"F1", "Help", "F2", "HTML", "F3", "Web", "F5", "Evidence", "Enter", g_full ? "Table" : "Expand",
                        "F9", "Menu", "F10", "Quit"};

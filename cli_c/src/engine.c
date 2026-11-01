@@ -35,6 +35,23 @@ int engine_locate(Engine *e) {
     int found = 0;
     const char *env_root = getenv("PACKETMEDIC_ROOT");
     if (env_root && is_root(env_root)) { snprintf(e->root, sizeof e->root, "%s", env_root); found = 1; }
+
+    /* Release layout: <dir>/pmtui.exe + <dir>/engine/packetmedic.exe (frozen engine, no Python needed) */
+    if (!found && exe_dir(dir, sizeof dir) == 0) {
+        char eng[PM_PATH], exe[PM_PATH];
+        path_join(eng, sizeof eng, dir, "engine");
+#ifdef _WIN32
+        path_join(exe, sizeof exe, eng, "packetmedic.exe");
+#else
+        path_join(exe, sizeof exe, eng, "packetmedic");
+#endif
+        if (file_exists(exe)) {
+            snprintf(e->root, sizeof e->root, "%s", dir);
+            snprintf(e->python, sizeof e->python, "%s", exe);
+            e->frozen = 1;
+            found = 1;
+        }
+    }
     if (!found && get_cwd(dir, sizeof dir) == 0 && walk_up(dir) == 0) { snprintf(e->root, sizeof e->root, "%s", dir); found = 1; }
     if (!found && exe_dir(dir, sizeof dir) == 0 && walk_up(dir) == 0) { snprintf(e->root, sizeof e->root, "%s", dir); found = 1; }
     if (!found) {
@@ -50,6 +67,7 @@ int engine_locate(Engine *e) {
     path_join(e->samples, sizeof e->samples, s, "pcaps");
     make_dir(e->reports);
     make_dir(e->captures);
+    if (e->frozen) return 0;
 
     const char *cands[] = {".venv/Scripts/python.exe", ".venv/bin/python", "venv/Scripts/python.exe",
                            "venv/bin/python", NULL};
@@ -66,9 +84,30 @@ int engine_locate(Engine *e) {
     return -1;
 }
 
+/* Build "<engine> [args...]": either the frozen exe or "python -m packetmedic". */
+static int engine_argv(const Engine *e, const char *const *args, const char **out, int max) {
+    int n = 0;
+    out[n++] = e->python;
+    if (!e->frozen) { out[n++] = "-m"; out[n++] = "packetmedic"; }
+    for (int i = 0; args[i] && n < max - 1; i++) out[n++] = args[i];
+    out[n] = NULL;
+    return n;
+}
+
 int engine_check(Engine *e) {
     char log[PM_PATH];
     path_join(log, sizeof log, e->reports, "engine_check.log");
+    if (e->frozen) {
+        const char *argv[] = {e->python, "--version", NULL};
+        int code = -1;
+        if (proc_run(argv, e->root, log, 60000, &code) != 0 || code != 0) {
+            snprintf(e->error, sizeof e->error, "The bundled engine (engine\\packetmedic.exe) failed to start.");
+            return -1;
+        }
+        snprintf(e->py_version, sizeof e->py_version, "bundled");
+        e->ready = 1;
+        return 0;
+    }
     const char *argv[] = {e->python, "-c",
                           "import sys, packetmedic.analyzer; print('PMOK', sys.version.split()[0])",
                           NULL};
@@ -152,8 +191,9 @@ int analysis_start(Engine *e, Analysis *a, const char *capture) {
     snprintf(name, sizeof name, "%s.log", stem);
     path_join(a->log, sizeof a->log, e->reports, name);
     remove(a->json);
-    const char *argv[] = {e->python, "-m", "packetmedic", "analyze", a->capture,
-                          "--json", a->json, "--html", a->html, "-q", NULL};
+    const char *args[] = {"analyze", a->capture, "--json", a->json, "--html", a->html, "-q", NULL};
+    const char *argv[16];
+    engine_argv(e, args, argv, 16);
     a->started = now_ms();
     return proc_spawn(&a->proc, argv, e->root, a->log, ENGINE_ENV);
 }
@@ -187,7 +227,9 @@ int evidence_export(Engine *e, const char *capture, char *outdir, size_t outlen,
     path_join(outdir, outlen, e->reports, name);
     snprintf(name, sizeof name, "%s_evidence.log", stem);
     path_join(log, sizeof log, e->reports, name);
-    const char *argv[] = {e->python, "-m", "packetmedic", "analyze", capture, "--evidence-dir", outdir, "-q", NULL};
+    const char *args[] = {"analyze", capture, "--evidence-dir", outdir, "-q", NULL};
+    const char *argv[16];
+    engine_argv(e, args, argv, 16);
     Proc p;
     int code = -1;
     if (proc_spawn(&p, argv, e->root, log, ENGINE_ENV) != 0) { snprintf(msg, msglen, "could not start engine"); return -1; }

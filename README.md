@@ -34,7 +34,12 @@ PacketMedic reads a `.pcap` / `.pcapng` file and produces a **diagnosis**, not a
 
 ---
 
-## Quick start (about 2 minutes)
+## Download (Windows, no install)
+
+Grab **`PacketMedic-1.0.0-win64.zip`** from the [Releases page](https://github.com/Mohit427/packetmedic/releases). Unzip it, then run `pmtui.exe`. No Python or setup is needed: the analysis engine is bundled (frozen with PyInstaller), and the 15 sample captures are included. The Streamlit web dashboard requires the full install below; the HTML report (F2) works in the zip.
+To rebuild the zip: `pip install pyinstaller`, then `python tools/build_release.py` (needs MSYS2 gcc).
+
+## Quick start from source (about 2 minutes)
 
 Requires **Python 3.10+** (tested on 3.12, Windows and Linux). No network access, accounts or API keys needed.
 

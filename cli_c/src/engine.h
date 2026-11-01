@@ -12,6 +12,7 @@ typedef struct {
     char captures[PM_PATH];    /* <root>/captures */
     char samples[PM_PATH];     /* <root>/samples/pcaps */
     int  ready;
+    int  frozen;               /* release build: engine/packetmedic.exe instead of python -m packetmedic */
     char error[512];
 } Engine;
 

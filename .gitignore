@@ -13,3 +13,5 @@ captures/
 cli_c/pmtui
 cli_c/pmtui.exe
 cli_c/build/
+build/
+dist/
