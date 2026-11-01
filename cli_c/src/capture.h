@@ -6,6 +6,12 @@
 
 typedef enum { CAP_NONE, CAP_DUMPCAP, CAP_TCPDUMP, CAP_PKTMON } CapBackend;
 
+/* Listening caps: the user picks the duration, but only inside these bounds.
+ * The byte cap keeps captures below the engine's 512 MB input limit. */
+#define CAP_MIN_SECONDS 5
+#define CAP_MAX_SECONDS 300
+#define CAP_MAX_BYTES   (400LL * 1024 * 1024)
+
 typedef struct {
     CapBackend backend;
     char tool[PM_PATH];

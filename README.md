@@ -2,7 +2,7 @@
 
 **Finds the faults and attacks hidden in a packet capture, tells you which is which, and explains each one in plain language with the evidence packets.**
 
-> Network track · 24h Cybersecurity Hackathon · IIITDM Kancheepuram
+> **Team Docker Duo** · Network track · 24h Cybersecurity Hackathon · IIITDM Kancheepuram
 > Demo video: _<add link here>_
 
 ---
@@ -74,7 +74,7 @@ cli_c/pmtui samples/pcaps/07_arp_spoofing.pcap     # straight to the dashboard
 The main menu offers three options:
 1. **Bundled sample.** Browse all 15 scenarios with a description of each.
 2. **Your own file.** Type or paste a path; it is validated before analysis.
-3. **Live capture.** Records 10–120 s of this machine's traffic passively, after a consent screen, then diagnoses it. It uses `dumpcap` (Wireshark), `tcpdump`, or Windows' built-in `pktmon` (run the terminal **as Administrator** for pktmon).
+3. **Live capture.** You type how long to listen, capped between **5 s and 300 s** (5 min), and the capture also auto-stops at 400 MB. It records this machine's traffic passively, after a consent screen, then diagnoses it. It uses `dumpcap` (Wireshark), `tcpdump`, or Windows' built-in `pktmon` (run the terminal **as Administrator** for pktmon).
 
 The dashboard shows health/verdict meters, protocol meters, a findings table with mini timelines, and a scrollable detail pane with reasoning, evidence frames and a Wireshark filter. It also shows a clickable link to the **HTML report**. **F3** launches the **Streamlit dashboard** for the same capture and shows its `http://localhost:…` link. Other keys: **F2** opens the HTML report, **F5** exports evidence pcaps.
 `pmtui` uses no third-party C libraries (own ANSI terminal layer, own JSON parser) and never invokes a shell. Design: [`docs/CLI_ARCHITECTURE.md`](docs/CLI_ARCHITECTURE.md).

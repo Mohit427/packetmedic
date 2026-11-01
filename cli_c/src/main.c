@@ -49,6 +49,9 @@ static int snapshot(App *a, int argc, char **argv) {
     } else if (!strcmp(which, "samples")) {
         char p[PM_PATH];
         screen_samples(a, p, sizeof p);
+    } else if (!strcmp(which, "live")) {
+        char p[PM_PATH];
+        screen_live(a, p, sizeof p);
     } else {
         screen_menu(a);
     }

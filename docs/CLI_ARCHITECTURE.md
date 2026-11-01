@@ -1,10 +1,12 @@
 # PacketMedic TUI (`pmtui`): architecture
 
+_Team Docker Duo_
+
 A native **C** terminal front-end for PacketMedic with an htop-style look. From one screen you can:
 
 1. **Analyse a bundled sample**: browse the sample captures with a description of each.
 2. **Analyse your own capture**: type or paste a path to a `.pcap` / `.pcapng`.
-3. **Capture live traffic**: record N seconds from this machine's network (passively), then analyse it.
+3. **Capture live traffic**: the user types how long to listen (enforced range **5–300 s**, plus a 400 MB size cap), PacketMedic records passively, then analyses it.
 
 …and then see an **interactive dashboard in the terminal**, plus links to the **HTML report** (file link) and the **Streamlit web dashboard** (`http://localhost:<port>`) for the same capture.
 
@@ -116,6 +118,7 @@ Colours: green meters, red ATTACK, yellow SUSPICIOUS, blue FAULT, cyan selection
 | Linux/macOS | `tcpdump` | `tcpdump -i any -U -w <file.pcap>` (no `-i any` on macOS) | stopped with SIGINT after N s; needs root/CAP_NET_RAW |
 | Windows | `pktmon` (built in) | `pktmon start --capture --comp nics --pkt-size 0 --file-name <etl>` → `pktmon stop` → `pktmon etl2pcap <etl> --out <pcapng>` | needs an **Administrator** terminal; `--comp nics` avoids duplicate copies of each packet from different stack layers |
 
+- **Listening caps:** the duration is typed by the user but must be between `CAP_MIN_SECONDS` (5) and `CAP_MAX_SECONDS` (300). The screen validates it and `capture_start()` clamps it again. Recording also stops early if the file reaches `CAP_MAX_BYTES` (400 MB), which keeps it under the engine's 512 MB input limit.
 - **Passive only:** nothing is transmitted. A consent screen appears before every capture: *"Only capture on networks you own or are authorised to monitor."*
 - Captures are written to `captures/` (git-ignored) and never leave the machine.
 - If no backend or no privilege is available, the screen explains exactly what to install or how to re-run as admin/root instead of failing silently.

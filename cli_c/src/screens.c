@@ -119,6 +119,20 @@ void screen_message(App *a, const char *title, const char *text, int fg) {
     }
 }
 
+#define TEAM_NAME "Docker Duo"
+
+/* "━━  by Team Docker Duo  ━━" centred under the banner */
+static void team_line(int y, int w) {
+    const char *pre = "━━━  by Team ", *post = "  ━━━";
+    int tw = utf8_width(pre) + utf8_width(TEAM_NAME) + utf8_width(post);
+    int x = (w - tw) / 2;
+    if (x < 1) x = 1;
+    x += tui_text(y, x, -1, C_BLUE, C_DEF, A_BOLD, "━━━  ");
+    x += tui_text(y, x, -1, C_GREY, C_DEF, 0, "by Team ");
+    x += tui_text(y, x, -1, C_BMAGENTA, C_DEF, A_BOLD, TEAM_NAME);
+    tui_text(y, x, -1, C_BLUE, C_DEF, A_BOLD, post);
+}
+
 /* ================================================================== splash */
 int screen_splash(App *a) {
     tui_clear();
@@ -130,7 +144,8 @@ int screen_splash(App *a) {
     int y = h / 2 - rows;
     for (int i = 0; i < rows; i++)
         tui_text(y + i, (w - bw) / 2, -1, BANNER_COLORS[i], C_DEF, A_BOLD, big ? BANNER_BIG[i] : BANNER_SMALL[i]);
-    tui_text(y + rows + 2, (w - 34) / 2, -1, C_GREY, C_DEF, 0, "Checking the analysis engine…");
+    team_line(y + rows + 1, w);
+    tui_text(y + rows + 3, (w - 30) / 2, -1, C_GREY, C_DEF, 0, "Checking the analysis engine…");
     tui_present();
     return engine_check(&a->eng);
 }
@@ -144,7 +159,7 @@ static const char *const MENU_TITLES[3] = {
 static const char *const MENU_DESC[3] = {
     "15 labelled scenarios, each with a description",
     "Type or paste the path to any .pcap / .pcapng",
-    "Record 10-120 s passively, then diagnose it",
+    "Record 5-300 s passively, then diagnose it",
 };
 
 /* "C:\very\long\path" -> "…\long\path" so the end (the useful part) stays visible */
@@ -170,12 +185,14 @@ int screen_menu(App *a) {
         int big = w >= 92 && h >= 30;
         int rows = big ? 6 : 4;
         int bw = utf8_width(big ? BANNER_BIG[0] : BANNER_SMALL[0]);
-        int content_h = rows + 16;
+        int content_h = rows + 17;
         int y = h - 2 > content_h ? 1 + (h - 2 - content_h) / 2 : 2;
         for (int i = 0; i < rows; i++)
             tui_text(y + i, (w - bw) / 2, -1, BANNER_COLORS[i], C_DEF, A_BOLD, big ? BANNER_BIG[i] : BANNER_SMALL[i]);
         y += rows;
         ecg(y, (w - bw) / 2, bw, a->tick, C_BGREEN);
+        y += 1;
+        team_line(y, w);
         y += 1;
         const char *tag = w >= 100
             ? "Finds the faults and attacks hidden in packet captures, and explains them in plain language."
@@ -401,10 +418,14 @@ int screen_path(App *a, char *out, size_t outlen) {
 
 /* ================================================================== live capture */
 int screen_live(App *a, char *out, size_t outlen) {
-    static const int DUR[] = {10, 30, 60, 120};
-    static int dsel = 1;
+    static int secs = 30;                  /* remembered between captures */
+    char dbuf[8];
+    snprintf(dbuf, sizeof dbuf, "%d", secs);
+    size_t dlen = strlen(dbuf);
+    char derr[160] = "";
     capture_detect(&a->cap);
     int usable = a->cap.backend != CAP_NONE && (!a->cap.needs_admin || a->cap.have_admin);
+    if (g_snapshot_mode) usable = 1;      /* render the duration UI for --snapshot live */
     char lines[10][512];
     /* phase 1: consent + duration */
     for (;;) {
@@ -433,40 +454,80 @@ int screen_live(App *a, char *out, size_t outlen) {
             const char *k[] = {"Esc", "Back"};
             fkeys(k, 1);
         } else {
-            tui_text(y + 3, bx, -1, C_CYAN, C_DEF, A_BOLD, "Duration:");
-            int x = bx + 11;
-            for (int i = 0; i < 4; i++) {
-                char t[16];
-                snprintf(t, sizeof t, " %ds ", DUR[i]);
-                x += tui_text(y + 3, x, -1, i == dsel ? C_BLACK : C_DEF, i == dsel ? C_CYAN : C_DEF, A_BOLD, t) + 1;
-            }
-            tui_text(y + 5, bx, bw, C_BWHITE, C_DEF, A_BOLD, "Press Y to confirm you are authorised and start capturing.");
-            const char *k[] = {"←→", "Duration", "Y", "Start", "Esc", "Back"};
-            fkeys(k, 3);
+            /* duration: typed by the user, clamped to [CAP_MIN_SECONDS, CAP_MAX_SECONDS] */
+            tui_text(y + 3, bx, -1, C_CYAN, C_DEF, A_BOLD, "Listen for:");
+            tui_fill(y + 3, bx + 12, 7, C_BWHITE, C_BLACK, ' ');
+            tui_text(y + 3, bx + 13, 5, C_BWHITE, C_BLACK, A_BOLD, dbuf);
+            tui_cursor(1, y + 3, bx + 13 + (int)dlen);
+            tui_textf(y + 3, bx + 20, -1, C_DEF, C_DEF, 0, "seconds   (min %d s, max %d s = %d min)",
+                      CAP_MIN_SECONDS, CAP_MAX_SECONDS, CAP_MAX_SECONDS / 60);
+            int v = atoi(dbuf);
+            double frac = (double)(v < CAP_MIN_SECONDS ? 0 : v > CAP_MAX_SECONDS ? CAP_MAX_SECONDS : v) / CAP_MAX_SECONDS;
+            char vv[32];
+            snprintf(vv, sizeof vv, "%d s", v);
+            tui_meter(y + 4, bx, bw > 70 ? 70 : bw, "           ", frac,
+                      (v >= CAP_MIN_SECONDS && v <= CAP_MAX_SECONDS) ? C_BGREEN : C_BRED, vv);
+            if (derr[0]) tui_text(y + 5, bx, bw, C_BRED, C_DEF, A_BOLD, derr);
+            tui_textf(y + 6, bx, bw, C_GREY, C_DEF, 0,
+                      "Type the seconds, or adjust with ←/→ (±5 s) and ↑/↓ (±30 s). Auto-stops at %d MB.",
+                      (int)(CAP_MAX_BYTES / (1024 * 1024)));
+            tui_text(y + 8, bx, bw, C_BWHITE, C_DEF, A_BOLD, "Press Y to confirm you are authorised and start capturing.");
+            const char *k[] = {"0-9", "Seconds", "←→↑↓", "Adjust", "Y", "Start", "Esc", "Back"};
+            fkeys(k, 4);
         }
         (void)h;
         tui_present();
+        if (g_snapshot_mode) return 0;
         int key = tui_key(-1);
         if (key == K_ESC || key == K_F9) return 0;
         if (!usable) continue;
-        if (key == K_LEFT && dsel > 0) dsel--;
-        if (key == K_RIGHT && dsel < 3) dsel++;
-        if (key == 'y' || key == 'Y') break;
+        int cur = atoi(dbuf), delta = 0;
+        if (key == K_LEFT) delta = -5;
+        else if (key == K_RIGHT) delta = 5;
+        else if (key == K_DOWN) delta = -30;
+        else if (key == K_UP) delta = 30;
+        if (delta) {
+            cur += delta;
+            if (cur < CAP_MIN_SECONDS) cur = CAP_MIN_SECONDS;
+            if (cur > CAP_MAX_SECONDS) cur = CAP_MAX_SECONDS;
+            snprintf(dbuf, sizeof dbuf, "%d", cur);
+            dlen = strlen(dbuf);
+            derr[0] = 0;
+        } else if (key >= '0' && key <= '9') {
+            if (dlen < 4) { dbuf[dlen++] = (char)key; dbuf[dlen] = 0; }
+            derr[0] = 0;
+        } else if (key == K_BACKSPACE) {
+            if (dlen) dbuf[--dlen] = 0;
+            derr[0] = 0;
+        } else if (key == 'y' || key == 'Y' || key == K_ENTER) {
+            int v = atoi(dbuf);
+            if (!dlen || v < CAP_MIN_SECONDS || v > CAP_MAX_SECONDS) {
+                snprintf(derr, sizeof derr, "Please choose between %d and %d seconds.", CAP_MIN_SECONDS, CAP_MAX_SECONDS);
+                continue;
+            }
+            if (key == K_ENTER) {
+                snprintf(derr, sizeof derr, "Press Y to confirm you are authorised to capture on this network.");
+                continue;
+            }
+            secs = v;
+            break;
+        }
     }
 
     char err[600] = "";
-    if (capture_start(&a->live, &a->cap, a->eng.captures, DUR[dsel], err, sizeof err) != 0) {
+    if (capture_start(&a->live, &a->cap, a->eng.captures, secs, err, sizeof err) != 0) {
         screen_message(a, "Capture failed", err, C_RED);
         return 0;
     }
     /* phase 2: progress */
-    int stopped_early = 0;
+    int stopped_early = 0, size_capped = 0;
     for (;;) {
         a->tick++;
         long el = now_ms() - a->live.started;
         double frac = el / (a->live.seconds * 1000.0);
         int done = frac >= 1.0;
         if (a->live.info.backend == CAP_DUMPCAP && !a->live.proc.running) done = 1;
+        if (capture_bytes(&a->live) >= CAP_MAX_BYTES) { done = 1; size_capped = 1; }
         tui_clear();
         header(a, "live capture · recording");
         int w = tui_w(), h = tui_h();
@@ -505,6 +566,8 @@ int screen_live(App *a, char *out, size_t outlen) {
         screen_message(a, "Capture failed", err, C_RED);
         return 0;
     }
+    if (size_capped)
+        set_status(a, C_BYELLOW, "Capture stopped early at the %d MB size limit.", (int)(CAP_MAX_BYTES / (1024 * 1024)));
     snprintf(out, outlen, "%s", a->live.out);
     return 1;
 }

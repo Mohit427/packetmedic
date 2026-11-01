@@ -72,6 +72,10 @@ int capture_start(Capture *c, const CapInfo *ci, const char *dir, int seconds, c
     stamp(ts, sizeof ts);
     snprintf(name, sizeof name, "live_%s.log", ts);
     path_join(c->log, sizeof c->log, dir, name);
+    /* defence in depth: the UI already validates, but the caps are enforced here too */
+    if (seconds < CAP_MIN_SECONDS) seconds = CAP_MIN_SECONDS;
+    if (seconds > CAP_MAX_SECONDS) seconds = CAP_MAX_SECONDS;
+    c->seconds = seconds;
     char secs[32];
     snprintf(secs, sizeof secs, "duration:%d", seconds);
 
